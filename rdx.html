@@ -1,0 +1,417 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title><%= contestDetails.title %> | Photo Contest | Promozonic</title>
+
+    <style>
+        .landing-image{
+            background-size: cover;
+            background-position: 0% 2%; 
+            background-repeat: no-repeat;
+            height: 560px;
+            background-image: url(/static/images/photo_contest_back.jpg);
+          width: 100%;
+          position: absolute;
+          filter: contrast(150%) brightness(60%);
+          z-index: -1;
+        }
+        .presents {
+          display: block;
+          color: #e60a6f;
+          font-weight: bold;
+          font-size: larger;
+        }
+        h1{
+          /* color: #fff; */
+          padding-top: 2%;
+        }
+        .rule-h1 .brief-h1{
+          color:black;
+        }
+        .brief-h1{
+          color:black;
+          padding: 0%;
+        }
+        .sponsor-name{
+          text-align: center;
+          font-family: 'Playfair Display', serif;
+        }
+        .info{
+          margin-right: 15%;
+          text-align: center;
+        }
+        .photo-gallery {
+          box-sizing: border-box;
+        }
+        .fa-thumbs-up{
+          color: blue; 
+          font-size: 22px; 
+          border: none; 
+          background-color: white;
+          cursor: pointer;
+        }
+        .fa-check-circle{
+          color: green; 
+          font-size: 26px; 
+          border: none; 
+          background-color: white;
+          cursor: pointer;
+        }
+        .fa-check{
+          color: #e60a6f;
+        }
+        .fa-trophy{
+          font-size: 44px;
+          position: absolute;
+          left: 20px;
+          top: 10px;
+        }
+        .gold{
+          color: gold;
+        }
+        .silver{
+          color: silver;
+        }
+        .bronze{
+          color: brown;
+        }
+        .list-group {
+          background-color: rgb(247, 227, 252);
+        }
+      .title {
+        font-size: 100px;
+      }
+      .contest-title {
+        font-size: 60px;
+
+      }
+      .text-success {
+        font-size: x-large;
+      }
+      .eventBrief {
+        max-width: 960px;
+        margin: 0 auto;
+        padding: 30px;
+        background-color: white;
+      }
+     @media screen and (max-width:720px) {
+       .title {
+         font-size: 50px;
+       }
+       .contest-title {
+         font-size: 30px;
+       }
+     }
+
+      
+    </style>
+  </head>
+  <body>
+    <%  var isLive=false, hasEnded=false, isUpcoming=false; %>
+    <% if((contestDetails.start_date <= Date.now()) && (contestDetails.end_date >= Date.now())) {isLive=true;} %>
+    <% if(contestDetails.end_date<=Date.now()) {hasEnded=true}  %>
+    <% if(contestDetails.start_date>Date.now()) {isUpcoming=true}  %>
+
+      <% include header.html %>
+    <div class="wrapper">
+      <div class="container-fluid">
+        
+        <div class="row">
+          <div class="landing-image"></div>
+        <div class="container-fluid text-center text-light" style="margin-top: 120px;font-family: 'Playfair Display', serif;">
+          <h1 class="title"><%= contestDetails.name%> </h1>
+          <span class="presents">presents</span>
+          <h2 class="contest-title"><%= contestDetails.title%></h2>
+          <h4><%= utils.formatDate(contestDetails.start_date) %>  to  <%= utils.formatDate(contestDetails.end_date) %></h4><br>
+          <% if(isLive) { %>
+            <div class="row">
+                <% if(!currentUser) { %>
+                <div class="col-lg-12 upload-prompt" align="center">
+                <button type="button" class="btn btn-light" data-toggle="modal" data-target="#loginModal" style="margin-right: 1%">Sign In to Participate
+                </button>
+                </div>
+                <% } else if(currentUser && !showFullDetails) { %>
+                <div class="col-lg-12 upload-prompt" align="center">
+                    <button type="button" class="btn btn-light btn-lg" data-toggle="modal" data-target="#enterPhotoModal" style="margin-right: 1%">Enter a Photo
+                    </button>
+                    <div class="modal fade" id="enterPhotoModal" tabindex="-1" role="dialog" aria-labelledby="enterPhotoModalTitle" aria-hidden="true">
+                            <div class="modal-dialog modal-dialog-centered" role="document">
+                              <div class="modal-content">
+                                <div class="modal-header">
+                                  <h5 class="modal-title" id="enterPhotoModalTitle">Enter Photo</h5>
+                                  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                  </button>
+                                </div>
+                                <div class="modal-body">
+                                        <form class="form-inline uploadPhoto" action="/app/livecontest" method="post" enctype="multipart/form-data">
+                                            <input type="hidden" value="<%=eid%>" name="eid" />
+                                            <!-- <button class="btn btn-danger" disabled>Enter a Photo</button> -->
+                                            <img id="blah" src="#" style="width:50%; height:auto;"/><br><br>
+                                            <input id="imgInp" class="form-control mb-2 mr-sm-2" type="file" name="userUploadedFile" multiple required/>
+                                            <button  type="submit" class="btn btn-light mb-2">Submit</button>
+                                            
+                                        </form>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                    </div>
+                    <% } %>
+            </div>
+            <% } %>
+          <br><br><br>
+        </div>
+        </div>
+
+        <div class="row">
+          <div class="eventBrief">
+    
+            <% if( isLive && (showFullDetails === true) ) { %>
+            <div class="row">
+                  <div class="col-sm-6 col-md-6 col-xs-12" style="padding: 1%;">
+                    <form action="/app/<%=contestDetails.slug%>/closeContest/<%= eid %>" method="post">
+                    <center>
+                      <input type="submit" value="CLOSE THE EVENT" class="btn btn-danger ">
+                    </center>
+                  </form>
+                  </div>
+                  <div class="col-sm-6 col-md-6 col-xs-12" style="padding: 1%;">
+                        <center>
+                            <input type="button" value="Create Coupons" class="btn" disabled title="First you need to close the contest">
+                         </center>
+                  </div>
+                </div>
+            <% } else if(hasEnded && (showFullDetails===true)) { %>
+              <div class="row">
+                  <div class="col-sm-6 col-md-6 col-xs-12" style="padding: 1%;">
+                    <center>
+                      <input type="button" value="CLOSE THE EVENT" class="btn btn-danger " disabled>
+                    </center>
+                  </div>
+                  <div class="col-sm-6 col-md-6 col-xs-12" style="padding: 1%;">
+                      <form action="/app/createCouponPhotoContest" method="post">
+                        <center>
+                            <input type="text" value="<%= contestDetails.eid %>" name="eid" hidden>
+                            <input type="text" placeholder="Enter no. of coupons " name="total_prizes" required style="padding-left: 12px;">
+                            <input type="submit" value="Create Coupons" class="btn btn-light" >
+                         </center>
+                        </form>
+                  </div>
+                </div>
+            <% } %>
+                <div class="row">
+                    <div class="col-md-4 col-sm-12 sponsor-name" >
+                        <h2>
+                            <a href="/app/dashboard/<%= contestDetails.id %>"><%= contestDetails.name %> </a>
+                        </h2>
+                    </div>
+                    <div class="col-md-4 col-sm-12 text-success" align="center">
+                      <%= userNumber.no_of_submissions %> photo(s) entered
+                    </div>
+                    <div class="col-md-4 col-sm-12 text-success" align="center">
+                      <%= userNumber.no_of_users %> Photographer(s)
+                    </div>
+                </div>
+            <hr>
+                <div class="row">
+                  <div class="col-md-6 col-sm-12">
+                    <center> <h1  style="font-family: 'Playfair Display', serif;">Rules</h1> </center>
+                    <ul class="list-group">
+                      <li class="list-group-item">
+                        <i class="fas fa-check"></i> Every photo submitted will be available to rate after approval by the moderator.
+                      </li>
+                      <li class="list-group-item">
+                        <i class="fas fa-check"></i> <%= contestDetails.name %> is solely responsible for setting and communicating the eligibility requirements associated with prizes awarded to participants, as well as for procurement and distribution of all prizes.
+                      </li>
+                      <li class="list-group-item">
+                        <i class="fas fa-check"></i> <%= contestDetails.name %> holds Promozonic harmless from and against any and all claims, losses, damages, costs, awards, settlements, orders, or fines.
+                      </li>
+                      </ul>
+                  </div>
+                  <div class="col-md-6 col-sm-12">
+                    <center> <h1  style="font-family: 'Playfair Display', serif;">Brief</h1> </center>
+                    <ul class="list-group">
+                        <li class="list-group-item"><%= contestDetails.description %></li>
+                        <li class="list-group-item" style="font-family: 'Patrick Hand SC', cursive; font-size: 1.2em;">
+                          <strong>Prizes:<br></strong>
+                          <%= contestDetails.prize_description %>
+                        </li>
+                        <li class="list-group-item">Offer Valid Upto <%= utils.formatDate(contestDetails.prize_validity) %> </li>
+                      </ul>
+                  </div>
+                </div>
+          </div>
+        </div>
+
+
+        <% if(showFullDetails===true && isLive) { %>
+          <div class="header">
+              <h2 align="center" style="font-family: Rakkas;">Unapproved Entries (<%= unapprovedPhotos.length %>)</h2>
+              <% if(unapprovedPhotos.length>0) { %>
+              <p align="center" style="color: purple;">Click on <i class="fas fa-check-circle"></i> to approve the photos</p>
+              <% } else { %>
+              <p align="center" style="color: purple;">No more unapproved entries</p>
+              <% } %>
+          </div>
+          <div class="container photo-gallery">
+            <div class="row">
+            <% for(var i in unapprovedPhotos) { %>
+                <div class="col-lg-4 col-md-6 " >
+                  <div class="card  mr-lg-5 mr-md-5 mr-sm-5 ml-3 mb-5" style="width: 20rem;">
+                    <img class="card-img-top" src="/static/uploads/<%=unapprovedPhotos[i].entity_file_url%>" alt="Card image cap" style="height: 350px;" data-toggle="modal" data-target="#photoContest<%=unapprovedPhotos[i].entity_file_url%>">
+                    <div class="card-body">
+                      <h5 class="card-title float-left">
+                        <a href="/app/profile/<%= unapprovedPhotos[i].UID %>">
+                          <%= unapprovedPhotos[i].first_name %> 
+                          <%= unapprovedPhotos[i].last_name %> 
+                        </a>
+                      </h5>
+                      <form action="/app/verifyPhoto" method="POST">
+                        <input type="hidden" value="<%=eid%>" name="eid" />
+                        <button type="submit" class="fas fa-check-circle float-right mr-2" name="user_entity_upload_id" value="<%=unapprovedPhotos[i].PhotoID %>"></button>
+                      </form>
+                    </div>
+                  </div>
+                </div>
+                <!-- Modal for Unapproved Photos -->
+                <div class="modal fade" id="photoContest<%=unapprovedPhotos[i].entity_file_url%>" tabindex="-1" role="dialog" aria-labelledby="photoContest" aria-hidden="true">
+                    <div class="modal-dialog" role="document">
+                          <div class="modal-content">
+                                <div class="modal-header">
+                                      <h4 class="modal-title" id="modelTitleId">
+                                          <a href="/app/profile/<%= unapprovedPhotos[i].UID %>">
+                                            <%= unapprovedPhotos[i].first_name %> 
+                                            <%= unapprovedPhotos[i].last_name %> 
+                                          </a>
+                                      </h4>
+                                      <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                            <span aria-hidden="true">&times;</span>
+                                      </button>
+                                </div>
+                                <div class="modal-body">
+                                            <img src="/static/uploads/<%=unapprovedPhotos[i].entity_file_url%>" width="100%" style="max-height: 500px;">
+                                </div>
+                                <div class="modal-footer">
+                                    <form action="/app/verifyPhoto" method="POST">
+                                    <input type="hidden" value="<%=eid%>" name="eid" />
+                                    <button type="submit" class="fas fa-check-circle float-right mr-2" name="user_entity_upload_id" value="<%= unapprovedPhotos[i].PhotoID %>"></button>
+                                    </form>
+                                </div>
+                          </div>
+                    </div>
+              </div>
+          <% } %>
+          </div>
+        </div>
+        <% } %>
+      
+          <div class="header">
+              <h2 align="center" style="font-family: Rakkas;">Approved Entries So Far (<%= approvedPhotos.length %>)</h2></br></br>
+          </div>
+          
+          <div class="container photo-gallery">
+                  <div class="row">
+                      <% for(var i in approvedPhotos) { %>
+                          <div class="col-lg-4 col-md-6 " >
+                              <div class="card  mr-lg-5 mr-md-5 mr-sm-5 ml-3 mb-5" style="width: 20rem;">
+                                  <img class="card-img-top" src="/static/uploads/<%=approvedPhotos[i].entity_file_url%>" alt="Card image cap" style="height: 350px;" data-toggle="modal" data-target="#photoContest<%=approvedPhotos[i].entity_file_url%>">
+                                  <% if(hasEnded && i==0) { %>
+                                  <i class="fas fa-trophy gold"> <%= parseInt(i)+1 %><sup>st</sup> </i>
+                                  <% } else if(hasEnded && i==1){ %>
+                                  <i class="fas fa-trophy silver"> <%= parseInt(i)+1 %><sup>nd</sup></i>
+                                  <% } else if(hasEnded && i==2){ %>
+                                  <i class="fas fa-trophy bronze"> <%= parseInt(i)+1 %><sup>rd</sup> </i>
+                                  <% } %>
+
+                                      <div class="card-body">
+                                          <h5 class="card-title float-left">
+                                            <a href="/app/profile/<%= approvedPhotos[i].UID %>">
+                                            <%= approvedPhotos[i].first_name %> 
+                                            <%= approvedPhotos[i].last_name %> 
+                                          </a>
+                                          </h5>
+                                            <span class="float-right">
+                                              <%= approvedPhotos[i].Likes %>
+                                            </span>
+                                            <% if(currentUser && isLive) { %>
+                                            <form action="/app/likecount" method="POST">
+                                              <input type="hidden" value="<%=eid%>" name="eid" />
+                                              <button type="submit" class="fas fa-thumbs-up float-right mr-2" name="like" value="<%= approvedPhotos[i].PhotoID %>"></button>
+                                            </form>
+                                            <% } else if(isLive){ %>
+                                            
+                                              <i class="fas fa-thumbs-up float-right mr-2 " data-toggle="modal" data-target="#loginModal"></i>
+                                              <% } %>
+                                      </div>
+                              </div>
+                          </div>
+                          <!-- Modal for Approved Photos-->
+                        <div class="modal fade" id="photoContest<%=approvedPhotos[i].entity_file_url%>" tabindex="-1" role="dialog" aria-labelledby="photoContest" aria-hidden="true">
+                            <div class="modal-dialog" role="document">
+                                  <div class="modal-content">
+                                        <div class="modal-header">
+                                              <h4 class="modal-title" id="modelTitleId">
+                                                  <a href="/app/profile/<%= approvedPhotos[i].UID %>">
+                                                    <%= approvedPhotos[i].first_name %> 
+                                                    <%= approvedPhotos[i].last_name %> 
+                                                  </a>
+                                              </h4>
+                                              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                    <span aria-hidden="true">&times;</span>
+                                              </button>
+                                        </div>
+                                        <div class="modal-body">
+                                                    <img src="/static/uploads/<%=approvedPhotos[i].entity_file_url%>" width="100%" style="max-height: 500px;">
+                                        </div>
+                                        <div class="modal-footer">
+                                            <span class="float-right">
+                                              <%= approvedPhotos[i].Likes %>
+                                            </span>
+                                            <% if(currentUser && isLive) { %>
+                                              <form action="/app/likecount" method="POST">
+                                              <input type="hidden" value="<%=eid%>" name="eid" />
+                                              <button type="submit" class="fas fa-thumbs-up float-right mr-2" name="like" value="<%= approvedPhotos[i].PhotoID %>"></button>
+                                              </form>
+                                            <% } else if(isLive){ %>
+                                            
+                                              <i class="fas fa-thumbs-up float-right mr-2 " data-toggle="modal" data-target="#loginModal"></i>
+                                              <% } %>
+                                        </div>
+                                  </div>
+                            </div>
+                      </div>
+                      <% } %>
+                  </div>
+              </div>
+       
+      </div> <% include footer.html %>
+        <% include commonFooterScriptElements.html %>
+        <script>
+          $('.uploadPhoto').submit(function(){
+            alert("Your photo has been uploaded.\nWait for moderator's approval.");
+          });
+          
+          function readURL(input) {
+
+if (input.files && input.files[0]) {
+  var reader = new FileReader();
+
+  reader.onload = function(e) {
+    $('#blah').attr('src', e.target.result);
+  }
+
+  reader.readAsDataURL(input.files[0]);
+}
+}
+
+$("#imgInp").change(function() {
+readURL(this);
+});
+        </script>
+     
+  </body>
+</html>
